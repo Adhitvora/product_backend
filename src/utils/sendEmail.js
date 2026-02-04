@@ -6,7 +6,7 @@ const sendEmail = async ({ to, subject, html }) => {
     const transporter = nodemailer.createTransport({
       host: process.env.MAIL_HOST,
       port: Number(process.env.MAIL_PORT),
-      secure: process.env.MAIL_PORT === "465", 
+      secure: Number(process.env.MAIL_PORT) === 465,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
@@ -14,15 +14,15 @@ const sendEmail = async ({ to, subject, html }) => {
     });
 
     await transporter.sendMail({
-      from: `"Product App" <${process.env.EMAIL_USER}>`,
+      from: `"Product App" <${process.env.MAIL_USER}>`,
       to,
       subject,
       html,
     });
 
-    console.log(" Reset email sent to:", to);
+    console.log("Reset email sent to:", to);
   } catch (error) {
-    console.error("Email send failed:",);
+    console.error("Email send failed:", error);
     throw error;
   }
 };

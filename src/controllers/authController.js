@@ -112,50 +112,47 @@ export const loginUser = async (req, res) => {
 }
 
 export const forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body
+  try {
+    const { email } = req.body
 
-        const user = await User.findOne({ email })
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            })
-        }
-
-        // Generate token
-        const resetToken = crypto.randomBytes(32).toString('hex')
-
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex')
-
-        user.resetPasswordToken = hashedToken
-        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000
-        await user.save()
-
-        // Reset link
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
-        // Send email
-        await sendEmail({
-            to: user.email,
-            subject: 'Reset Your Password',
-            html: resetPasswordTemplate(user.name, resetLink)
-        })
-
-
-
-        return res.status(200).json({
-            success: true,
-            message: 'Password reset link sent to your email'
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Email could not be sent'
-        })
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      })
     }
+
+    const resetToken = crypto.randomBytes(32).toString('hex')
+
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex')
+
+    user.resetPasswordToken = hashedToken
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000
+    await user.save()
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Reset Your Password',
+      html: resetPasswordTemplate(user.name, resetLink)
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset link sent to your email'
+    })
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: 'Email could not be sent'
+    })
+  }
 }
 
 
